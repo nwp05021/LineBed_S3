@@ -27,7 +27,10 @@ public:
   bool hasStoredSsid() const;
 
   WifiStatus& status();   // ⭐ 선언도 reference
-  static void onWiFiEvent(arduino_event_id_t event);
+  static void onWiFiEvent(arduino_event_t* event);
+
+  // BLE Provisioning service can update these (keeps UI progress consistent)
+  void setProvisionState(ProvState st, bool active);
 
   // ⭐ 전역 접근용
   static WifiService* self;

@@ -2,6 +2,8 @@
 #include "services/SettingsStore.h"
 #include "core/AppEvents.h"
 
+const int UiManager::kBedCount;
+
 static const char* stateTitle(UiState s) {
   switch (s) {
     case UiState::MAIN: return "LineBed";
@@ -91,6 +93,7 @@ void UiManager::handleAppEvent(const AppEvent& ev) {
   switch (ev.type) {
     case AppEventType::BLE_PROV_STARTED:
     case AppEventType::BLE_PROV_ADVERTISING:
+    case AppEventType::BLE_PROV_CONNECTED:
     case AppEventType::BLE_PROV_RECEIVING:
     case AppEventType::BLE_PROV_APPLYING:
     case AppEventType::BLE_PROV_WIFI_CONNECTING:

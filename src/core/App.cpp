@@ -27,8 +27,6 @@ static PendingSettings gPendingRemote;
 static bool gHasPendingRemote = false;
 
 void App::begin() {
-  BleProvisionService::init();
-
   gSettings.begin();
 
   gEncoder.begin();
@@ -45,11 +43,14 @@ void App::begin() {
   gLed.begin(gSettings);
 
   gWifi.begin(gSettings);
+  // BLE provisioning should be initialized after WiFiService sets WiFi event handlers
+  // so UI can reflect progress via WifiService status.
+  BleProvisionService::init();
   gMqtt.begin(gSettings);
 }
 
 void App::loop() {
-  BleProvisionService::init();
+  BleProvisionService::tick();
 
   const uint32_t now = millis();
 

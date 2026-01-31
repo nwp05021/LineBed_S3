@@ -1,6 +1,9 @@
 #pragma once
 #include <stdint.h>
 
+// Shared UI/application event definitions.
+// Placed under /include so PlatformIO can always resolve it.
+
 enum class AppEventType : uint8_t {
   NONE = 0,
 
@@ -19,4 +22,7 @@ enum class AppEventType : uint8_t {
 
 struct AppEvent {
   AppEventType type;
+  int param;
 };
+
+void AppEvent_Push(const AppEvent& ev);

@@ -11,46 +11,40 @@
 
 WifiService* WifiService::self = nullptr;
 
-void WifiService::onWiFiEvent(arduino_event_id_t event) {
-  if (!self) return;
-  
+void WifiService::onWiFiEvent(arduino_event_t* event) {
+  if (!self || !event) return;
   auto& st = self->status();
 
-  switch (event) {
+  switch (event->event_id) {
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
       st.isConnected = false;
-      st.lastDisconnectReason = 0; // 또는 WIFI_REASON_UNSPECIFIED
+      // If available, capture disconnect reason
+      st.lastDisconnectReason = (int)event->event_info.wifi_sta_disconnected.reason;
+      st.link = WifiLinkState::DISCONNECTED;
       Serial.println("[WiFi] Disconnected");
       break;
 
     case ARDUINO_EVENT_WIFI_STA_CONNECTED:
+      st.link = WifiLinkState::CONNECTING;
       Serial.println("[WiFi] Connected");
       break;
 
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
       st.isConnected = true;
+      st.link = WifiLinkState::GOT_IP;
+      st.ssid = WiFi.SSID();
+      st.ip = WiFi.localIP().toString();
       Serial.println("[WiFi] Got IP");
       break;
 
     default:
       break;
   }
+}
 
-#ifdef ARDUINO_EVENT_PROV_START
-  if (event == ARDUINO_EVENT_PROV_START) { st.prov = ProvState::STARTED; sSelf->_provActive = true; }
-#endif
-#ifdef ARDUINO_EVENT_PROV_CRED_RECV
-  if (event == ARDUINO_EVENT_PROV_CRED_RECV) { st.prov = ProvState::CRED_RECV; }
-#endif
-#ifdef ARDUINO_EVENT_PROV_CRED_SUCCESS
-  if (event == ARDUINO_EVENT_PROV_CRED_SUCCESS) { st.prov = ProvState::CRED_SUCCESS; }
-#endif
-#ifdef ARDUINO_EVENT_PROV_CRED_FAIL
-  if (event == ARDUINO_EVENT_PROV_CRED_FAIL) { st.prov = ProvState::CRED_FAIL; }
-#endif
-#ifdef ARDUINO_EVENT_PROV_END
-  if (event == ARDUINO_EVENT_PROV_END) { st.prov = ProvState::ENDED; sSelf->_provActive = false; }
-#endif
+void WifiService::setProvisionState(ProvState p, bool active) {
+  _st.prov = p;
+  _provActive = active;
 }
 
 void WifiService::begin(SettingsStore& settings) {
@@ -65,28 +59,18 @@ void WifiService::begin(SettingsStore& settings) {
   WiFi.setAutoReconnect(true);
   WiFi.persistent(true);
 
-#if defined(ENABLE_BLE_PROV)
-  if (!WiFi.SSID().length()) {
-    Serial.println("[WiFi] No stored SSID. Starting BLE provisioning...");
-    _provActive = true;
-    _st.prov = ProvState::STARTED;
-    // WiFiProv.beginProvision(WIFI_PROV_SCHEME_BLE, WIFI_PROV_SCHEME_HANDLER_FREE_BTDM,
-    //                         WIFI_PROV_SECURITY_1, PROV_POP,
-    //                         PROV_SERVICE_NAME, nullptr);
-  } else {
-    _provActive = false;
-    Serial.printf("[WiFi] Stored SSID found: %s\n", WiFi.SSID().c_str());
-    WiFi.begin();
-  }
-#else
+  // Wi-Fi connection attempt.
+  // If credentials exist, Arduino core will connect.
+  // If not, BleProvisionService will drive provisioning, and then WiFi will connect automatically.
   if (WiFi.SSID().length()) {
     _provActive = false;
     Serial.printf("[WiFi] Stored SSID found: %s\n", WiFi.SSID().c_str());
     WiFi.begin();
   } else {
-    Serial.println("[WiFi] No stored SSID. ENABLE_BLE_PROV=1 to enable provisioning.");
+    Serial.println("[WiFi] No stored SSID. Waiting for provisioning...");
+    _provActive = false;
+    _st.prov = ProvState::IDLE;
   }
-#endif
 }
 
 void WifiService::tick(uint32_t nowMs) { ensureConnected(nowMs); }
@@ -103,13 +87,11 @@ void WifiService::ensureConnected(uint32_t nowMs) {
   if ((int32_t)(nowMs - _nextRetryMs) < 0) return;
   _nextRetryMs = nowMs + 5000;
 
-#if !defined(ENABLE_BLE_PROV)
   if (WiFi.SSID().length()) {
     Serial.println("[WiFi] retry connect...");
     WiFi.disconnect(false, false);
     WiFi.begin();
   }
-#endif
 }
 
 void WifiService::clearCredentials()

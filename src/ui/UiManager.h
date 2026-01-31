@@ -30,6 +30,8 @@ public:
 
   void setInitialState();
 
+  static const int kBedCount = 30;
+
 private:
   SettingsStore* _settings = nullptr;
   UiView _view;
@@ -47,8 +49,8 @@ private:
     uint16_t ledOffSec = 20;
   };
 
-  static constexpr int kBedCount = 30;
   BedData _beds[kBedCount];
+
   int _bedSelected = 0;   // absolute index 0..kBedCount-1
   int _bedScroll = 0;     // top index of list window
 
