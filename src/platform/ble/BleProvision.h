@@ -35,8 +35,12 @@ public:
 
   // Optional controls
   static bool isProvisioned();
+  static bool hasSavedConfig();
   static void start();
   static void stop();
+
+  // Clear stored Wi-Fi credentials (NVS) so the UI can show "Provision" again.
+  static void resetWifi();
 
 private:
   BleProvision() = delete;
