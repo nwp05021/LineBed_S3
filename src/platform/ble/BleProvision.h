@@ -1,47 +1,38 @@
 #pragma once
-#include <stdint.h>
+#include <Arduino.h>
+#include <WiFi.h>   // ⭐⭐⭐ 이 한 줄이 모든 문제의 해답 ⭐⭐⭐
 
-enum class BleProvStatus : uint8_t {
-  Idle = 0,
-  Init,
-  AlreadyProvisioned,
-  Starting,
-  Advertising,
-  Connected,
-  ReceivingCredentials,
-  Applying,
-  WifiConnecting,
-  GotIP,
-  Success,
-  Failed,
-  Stopped
+enum class BleProvState : uint8_t {
+  IDLE,
+  STARTING,
+  PROV_START,
+  CRED_RECV,
+  WIFI_CONNECTING,
+  WIFI_GOT_IP,
+  WIFI_DISCONNECTED,
+  PROV_FAIL,
+  PROV_END
 };
 
-using BleProvCallback = void(*)(BleProvStatus st, const char* msg);
+struct BleProvInfo {
+  BleProvState state = BleProvState::IDLE;
+  String ssid;
+  String ip;
+  int failReason = 0;
+};
 
 class BleProvision {
 public:
-  struct Config {
-    const char* serviceNamePrefix = "SmartFarmLine";
-    const char* pop = "smartfarmv1"; // Proof of Possession (Security 1)
-    bool autoStart = true;
-    bool stopAfterProvisioned = true;
-    BleProvCallback cb = nullptr;
-  };
+  void begin();
+  void start();
+  void resetWifi(bool reboot = true);
 
-  // Arduino entry
-  static void begin(const Config& cfg);
-  static void loop();
-
-  // Optional controls
-  static bool isProvisioned();
-  static bool hasSavedConfig();
-  static void start();
-  static void stop();
-
-  // Clear stored Wi-Fi credentials (NVS) so the UI can show "Provision" again.
-  static void resetWifi();
+  bool hasSavedConfig() const;
+  BleProvInfo info() const { return _info; }
 
 private:
-  BleProvision() = delete;
+  BleProvInfo _info;
+
+  static BleProvision* s_self;
+  static void onArduinoEvent(arduino_event_t* e);  // ← 헤더에 Arduino.h가 있으니 OK
 };

@@ -27,4 +27,5 @@ public:
 private:
   TFT_eSPI _tft = TFT_eSPI();
   TFT_eSprite _spr = TFT_eSprite(&_tft);
+  bool _useSprite = true;
 };
