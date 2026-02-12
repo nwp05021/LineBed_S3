@@ -6,16 +6,15 @@
 #include <stdint.h>
 
 enum class UiEventType : uint8_t {
-  Tick,
-  KeyDown,
-  KeyUp,
+  None,
   EncoderCW,
   EncoderCCW,
-
-  // System events
-  BleProvStateChanged,
-  WifiStateChanged,
-  ShadowSyncStateChanged,
+  KeyDown,
+  KeyUp,
+  KeyDoubleClick,   // 🔥 추가
+  KeyLongPress,
+  KeyVeryLongPress,
+  Tick,
 };
 
 enum class Key : uint8_t {

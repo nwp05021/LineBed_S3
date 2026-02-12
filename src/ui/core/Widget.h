@@ -16,7 +16,7 @@ public:
   virtual ~Widget() = default;
 
   void setBounds(Rect r) { _bounds = r; markDirty(); }
-  Rect bounds() const { return _bounds; }
+  const Rect& bounds() const { return _bounds; }
 
   bool isDirty() const { return _dirty; }
   void clearDirty() { _dirty = false; }
@@ -25,14 +25,15 @@ public:
   virtual void setFocused(bool v) { _focused = v; markDirty(); }
   bool focused() const { return _focused; }
 
-  virtual void onStoreChanged(const UiStore&) {}   // 필요 시
-  virtual bool handleEvent(const UiEvent&, UiStore&) { return false; }
+  virtual void onStoreChanged(const UiStore&) {}
+  virtual bool handleEvent(const UiEvent&, const UiStore&) { return false; }
 
   virtual void draw(IDisplay& d, const UiStore& store) = 0;
 
-protected:
+  // 🔥 반드시 public
   void markDirty() { _dirty = true; }
 
+protected:
   Rect _bounds{0,0,0,0};
   bool _dirty = true;
   bool _focused = false;

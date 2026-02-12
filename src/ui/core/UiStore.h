@@ -8,6 +8,12 @@
 enum class ConnState : uint8_t { Disconnected, Connecting, Connected, Error };
 enum class SyncState : uint8_t { Idle, Pending, Synced, Failed };
 
+enum class DialogResult {
+  None,
+  Ok,
+  Cancel
+};
+
 struct UiStore {
   // Dashboard
   float airTempC = 0;
@@ -25,6 +31,8 @@ struct UiStore {
 
   // “store가 바뀌었는지” versioning
   uint32_t revision = 0;
+
+  DialogResult lastDialog = DialogResult::None;
 
   void bump() { revision++; }
 };

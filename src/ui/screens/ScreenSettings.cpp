@@ -1,6 +1,6 @@
 #include "ScreenSettings.h"
 
-void ScreenSettings::layout(UiContext& ctx, int w, int h) {
+void ScreenSettings::layout(const UiContext& ctx, int w, int h) {
   _widgets.clear();
 
   _widgets.emplace_back(std::make_unique<Label>("SETTINGS"));
@@ -20,13 +20,47 @@ void ScreenSettings::layout(UiContext& ctx, int w, int h) {
   setFocus(1);
 }
 
-bool ScreenSettings::handleEvent(UiContext& ctx, const UiEvent& e) {
-  if (e.type == UiEventType::EncoderCW)  { focusNext(); return true; }
-  if (e.type == UiEventType::EncoderCCW){ focusPrev(); return true; }
+bool ScreenSettings::handleEvent(const UiContext& ctx, const UiEvent& e) {
+  switch (e.type) {
+    case UiEventType::EncoderCW:
+      _focus.next();
+      _dirty = true;
+      return true;
 
-  if (e.type == UiEventType::KeyDown && e.data.key.key == Key::Back) {
-    ctx.commands.post(UiCommand::Pop());
-    return true;
-  }  
+    case UiEventType::EncoderCCW:
+      _focus.prev();
+      _dirty = true;
+      return true;
+
+    case UiEventType::KeyDown:
+      // 값 편집 진입
+      //enterEditMode();
+      return true;
+
+    case UiEventType::KeyLongPress:
+      // 🔥 길게 = 저장 확인 다이얼로그
+      ctx.commands.post(
+        UiCommand::Dialog("Save", "Apply changes?", false)
+      );
+      return true;
+
+    case UiEventType::KeyDoubleClick:
+      // 🔥 두 번 = 즉시 저장
+      //applyAndExit();
+      ctx.commands.post(UiCommand::Toast("Saved", 1000));
+      return true;
+
+    default:
+      break;
+  }
   return Screen::handleEvent(ctx, e);
+}
+
+void ScreenSettings::onStoreChanged(const UiContext& ctx) {
+  if (ctx.store.lastDialog == DialogResult::Ok) {
+    //applyAndExit();
+    ctx.commands.post(UiCommand::Toast("Applied", 1200));
+  }
+  ctx.store.lastDialog = DialogResult::None;
+  Screen::onStoreChanged(ctx);
 }

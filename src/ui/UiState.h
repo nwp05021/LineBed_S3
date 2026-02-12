@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include "ScreenId.h"
+#include "ui/core/ScreenId.h"
 
 struct UiState {
     ScreenId currentScreen{ScreenId::Main};

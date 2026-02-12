@@ -1,6 +1,6 @@
 #include "ScreenDashboard.h"
 
-void ScreenDashboard::layout(UiContext& ctx, int w, int h) {
+void ScreenDashboard::layout(const UiContext& ctx, int w, int h) {
   _widgets.clear();
 
   _widgets.emplace_back(std::make_unique<Label>("DASHBOARD"));
@@ -20,7 +20,7 @@ void ScreenDashboard::layout(UiContext& ctx, int w, int h) {
   setFocus(1);
 }
 
-bool ScreenDashboard::handleEvent(UiContext& ctx, const UiEvent& e) {
+bool ScreenDashboard::handleEvent(const UiContext& ctx, const UiEvent& e) {
   if (e.type == UiEventType::EncoderCW)  { focusNext(); return true; }
   if (e.type == UiEventType::EncoderCCW){ focusPrev(); return true; }
 

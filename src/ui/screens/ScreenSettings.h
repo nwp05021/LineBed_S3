@@ -9,6 +9,7 @@
 
 class ScreenSettings : public Screen {
 public:
-  void layout(UiContext& ctx, int w, int h) override;
-  bool handleEvent(UiContext& ctx, const UiEvent& e) override;
+  void layout(const UiContext& ctx, int w, int h) override;
+  bool handleEvent(const UiContext& ctx, const UiEvent& e) override;
+  void onStoreChanged(const UiContext& ctx) override;
 };

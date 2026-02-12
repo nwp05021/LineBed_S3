@@ -13,6 +13,6 @@ public:
 };
 
 struct UiContext {
-  UiStore& store;
-  UiCommandQueue& commands;
+    UiStore& store; 
+    UiCommandQueue& commands; 
 };
